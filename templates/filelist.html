@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block content %}
+    {% if message %}
+        {{ message }}
+    {% endif %}
+
+    <table border="1"  cellspacing="0" width="60%">
+
+        <thead>
+            <th width="25%">Input report</th>
+            <th width="25%">Description</th>
+            <th width="25%">Output report</th>
+            <th>Created at</th>
+        </thead>
+
+        {% for file in file_list %}
+            <tr>
+                <td align="center"><a href="{% url download_file %}?filename={{ file.filestore }}&path=FILE_UPLOAD_PATH"/>{{ file.filename }}</td>
+                <td align="center">{{ file.description }}</td>
+                <td align="center"><a href="{% url download_file %}?filename={{ file.filestore }}&path=FILE_GENERATE_PATH"/>
+                Download</td>
+                <td align="center">{{ file.upload_time }}</td>
+            </tr>
+
+        {% endfor %}
+
+        {% for s in spreadsheet_list %}
+            <tr>
+                <td align="center"><a href="{{ s.spreadsheet_link }}"/>{{  s.title }}</td>
+                <td align="center">{{ s.description }}</td>
+                <td align="center"><a href="{{ s.output_link }}"/>
+                Generated</td>
+                <td align="center">{{ s.created_time }}</td>
+            </tr>
+
+        {% endfor %}
+
+
+        
+    </table></br>
+    <a href="{% url upload_file %}"><button type="button" onclick="">Add new report</button></a>
+{% endblock %}
