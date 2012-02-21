@@ -11,32 +11,34 @@ import operator
 from itertools import groupby
 import os
 from extract_information import extract_information, get_list_of_object
+from django.http import HttpResponse, HttpResponseRedirect
 
 SITE_ROOT = os.path.dirname(os.path.realpath(__file__)) #path of the app
 FILE_UPLOAD_PATH = SITE_ROOT + '/uploaded' #path to uploaded folder
 FILE_GENERATE_PATH = SITE_ROOT + '/generated' #path to generated folder
 
 #function to generate the report, receive the file name of the input file as the input
-def generate(filename, user):
+def generate(filename, request):
     fname = filename #name of the input file
+    response = HttpResponse(mimetype='application/ms-excel')
     try:
         #extract the specified information
         function_name, index_of_function, group, index_of_group, body, indexes_of_body, input_file,index_of_excel_function, excel_function, body_input, index_of_body_input, head, index_of_head, head_input, index_of_head_input, foot, index_of_foot, foot_input, index_of_foot_input = fileExtractor(fname)
     except:
-        return 'Wrong input file, please check all data' #if cannot extract the data, return wrong message
+        return 'Wrong input file, please check all data', response #if cannot extract the data, return wrong message
     else:
-        message, list_objects = get_list_of_object(function_name,index_of_function, user)
+        message, list_objects = get_list_of_object(function_name,index_of_function, request)
 
         if message != 'ok':
-            return message
+            return message, response
         #generate the report to the excel file, message here is the signal of the success
-        message = generate_output(list_objects, index_of_function, group, index_of_group, body,
+        message, response = generate_output(list_objects, index_of_function, group, index_of_group, body,
                                   indexes_of_body, input_file,fname, index_of_excel_function, excel_function,
                                   body_input, index_of_body_input,
                                   head, index_of_head, head_input, index_of_head_input,
-                                  foot, index_of_foot, foot_input, index_of_foot_input)
-        return message
-    return 'ok'
+                                  foot, index_of_foot, foot_input, index_of_foot_input, request)
+        return message, response
+    return 'ok', response
 
 #function to extract specifications from the template file
 def fileExtractor(file):
@@ -75,8 +77,9 @@ def fileExtractor(file):
                 group += temp_group
     return function_name, index_of_function, group, index_of_group, body, indexes_of_body,fd, index_of_excel_function, excel_function, body_input, indexes_of_body_input, head, index_of_head, head_input, index_of_head_input, foot, index_of_foot, foot_input, index_of_foot_input
 
-def generate_output(list_objects,index_of_function,  group, index_of_group, body, indexes_of_body, input_file,fname, index_of_excel_function, excel_function, body_input, index_of_body_input, head, index_of_head, head_input, index_of_head_input, foot, index_of_foot, foot_input, index_of_foot_input):
+def generate_output(list_objects,index_of_function,  group, index_of_group, body, indexes_of_body, input_file,fname, index_of_excel_function, excel_function, body_input, index_of_body_input, head, index_of_head, head_input, index_of_head_input, foot, index_of_foot, foot_input, index_of_foot_input, request):
     message = 'ok' #message to be returned to signal the success of the function
+    response = HttpResponse(mimetype='application/ms-excel')
 
     #back up excel_function
     backup_excel_function = excel_function[:]
@@ -95,11 +98,11 @@ def generate_output(list_objects,index_of_function,  group, index_of_group, body
     dict = {}
 
     #manipulate the data
-    message = manipulate_data(list_objects,index_of_function,  group, index_of_group, body, indexes_of_body, input_file,fname, index_of_excel_function, excel_function, dict, head, index_of_head, head_input, index_of_head_input, foot, index_of_foot, foot_input, index_of_foot_input)
+    message = manipulate_data(list_objects,index_of_function,  group, index_of_group, body, indexes_of_body, input_file,fname, index_of_excel_function, excel_function, dict, head, index_of_head, head_input, index_of_head_input, foot, index_of_foot, foot_input, index_of_foot_input, request)
 
     #if something's wrong, the return the message to raise exception
     if message != 'ok':
-        return message
+        return message, response
     
     keys =  sorted(dict.keys()) #sort the keys
 
@@ -238,7 +241,7 @@ def generate_output(list_objects,index_of_function,  group, index_of_group, body
                         message =  'Error in excel formula definition (at cell (' + str(index_of_excel_function[h][0] + 1) + ', '
                         message = message + str(index_of_excel_function[h][1] + 1)
                         message = message + ')): Syntax error '
-                        return message
+                        return message, response
 
             #copy format of other cell in the body row
             row_index = index_of_body_input[0][0]
@@ -282,11 +285,14 @@ def generate_output(list_objects,index_of_function,  group, index_of_group, body
         row += 2 #each group are separated by one row, for beauty
 
     #save output
-    wtbook.save('%s/%s' % (FILE_GENERATE_PATH, fname))
-    return message
+#    wtbook.save('%s/%s' % (FILE_GENERATE_PATH, fname))
+
+    response['Content-Disposition'] = u'attachment; filename=%s' % fname
+    wtbook.save(response)
+    return message, response
 
 # This function is used for manipulating the data:
-def manipulate_data(list_objects,index_of_function,  group, index_of_group, body, indexes_of_body, input_file,fname, index_of_excel_function, excel_function, dict, head, index_of_head, head_input, index_of_head_input, foot, index_of_foot, foot_input, index_of_foot_input):
+def manipulate_data(list_objects,index_of_function,  group, index_of_group, body, indexes_of_body, input_file,fname, index_of_excel_function, excel_function, dict, head, index_of_head, head_input, index_of_head_input, foot, index_of_foot, foot_input, index_of_foot_input, request):
     message = 'ok'
 
     # compute values of the data fields and put them into the dict
@@ -360,7 +366,7 @@ def manipulate_data(list_objects,index_of_function,  group, index_of_group, body
                 except :
                     try: #for django models
                         foot_value = eval('i.%s'%f)
-                        if (foot_value):
+                        if (foot_value != None):
                             foot_result.append(foot_value) #if the foot value s not None
                         else:
                             foot_result.append('')

@@ -67,7 +67,7 @@ def extract_information(index_of_function, index_of_group, body, indexes_of_body
     return function_name, group
 
 #function to get a list of objects containing the data
-def get_list_of_object(function_name, index_of_function, user):
+def get_list_of_object(function_name, index_of_function, request):
     #try to get list of objects from definitions.py file, or execute the fuction directly
     try:
         list_objects = eval('definitions.%s' %function_name)
@@ -84,7 +84,7 @@ def get_list_of_object(function_name, index_of_function, user):
         print 'error'
 
     try:
-        current_user = user.get_profile() #get user profile
+        current_user = request.user.get_profile() #get user profile
     except :
         return 'You must set up you database!', []
 
