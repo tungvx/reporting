@@ -13,7 +13,7 @@
 #def tk_hl_hk_dh_hk1():
 
 try:
-    from school.models import Mark, Pupil
+    from school.models import *
 except :
     print ''
 
@@ -23,3 +23,6 @@ def mark_for_class(request):
 
 def student_list(request, class_name):
     return Pupil.objects.filter(class_id__name = class_name)
+
+def get_class_list(request):
+    return Class.objects.filter(year_id__id = int(request.session.get('year_id')),year_id__school_id__id = int(request.session.get('school_id'))).order_by('name')

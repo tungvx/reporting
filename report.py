@@ -23,7 +23,7 @@ def generate(filename, request):
     response = HttpResponse(mimetype='application/ms-excel')
     try:
         #extract the specified information
-        function_name, index_of_function, group, index_of_group, body, indexes_of_body, input_file,index_of_excel_function, excel_function, body_input, index_of_body_input, head, index_of_head, head_input, index_of_head_input, foot, index_of_foot, foot_input, index_of_foot_input = fileExtractor(fname)
+        function_name, index_of_function, group, index_of_group, body, indexes_of_body, input_file,index_of_excel_function, excel_function, body_input, index_of_body_input, head, index_of_head, head_input, index_of_head_input, foot, index_of_foot, foot_input, index_of_foot_input, once, index_of_once, once_input, index_of_once_input = fileExtractor(fname)
     except:
         return 'Wrong input file, please check all data', response #if cannot extract the data, return wrong message
     else:
@@ -36,7 +36,8 @@ def generate(filename, request):
                                   indexes_of_body, input_file,fname, index_of_excel_function, excel_function,
                                   body_input, index_of_body_input,
                                   head, index_of_head, head_input, index_of_head_input,
-                                  foot, index_of_foot, foot_input, index_of_foot_input, request)
+                                  foot, index_of_foot, foot_input, index_of_foot_input, request,
+                                  once, index_of_once, once_input, index_of_once_input)
         return message, response
     return 'ok', response
 
@@ -60,6 +61,10 @@ def fileExtractor(file):
     index_of_foot = []
     foot_input = []
     index_of_foot_input = []
+    once = []
+    index_of_once = []
+    once_input = []
+    index_of_once_input = []
     
     fd = xlrd.open_workbook('%s/%s' % (FILE_UPLOAD_PATH, file), formatting_info=True)     #Read excel file for get data
     sheet = fd.sheet_by_index(0) # Get the first sheet
@@ -70,14 +75,14 @@ def fileExtractor(file):
             if value: #if the cell contains data
 
                 #call the function to extract information
-                temp_function_name, temp_group = extract_information(index_of_function, index_of_group, body, indexes_of_body,index_of_excel_function, excel_function, value, row_x, col_x,[],[], body_input, indexes_of_body_input, head, index_of_head, head_input, index_of_head_input, foot, index_of_foot, foot_input, index_of_foot_input)
+                temp_function_name, temp_group = extract_information(index_of_function, index_of_group, body, indexes_of_body,index_of_excel_function, excel_function, value, row_x, col_x,[],[], body_input, indexes_of_body_input, head, index_of_head, head_input, index_of_head_input, foot, index_of_foot, foot_input, index_of_foot_input, once, index_of_once, once_input, index_of_once_input)
 
                 #append the function_name and the group
                 function_name += temp_function_name
                 group += temp_group
-    return function_name, index_of_function, group, index_of_group, body, indexes_of_body,fd, index_of_excel_function, excel_function, body_input, indexes_of_body_input, head, index_of_head, head_input, index_of_head_input, foot, index_of_foot, foot_input, index_of_foot_input
+    return function_name, index_of_function, group, index_of_group, body, indexes_of_body,fd, index_of_excel_function, excel_function, body_input, indexes_of_body_input, head, index_of_head, head_input, index_of_head_input, foot, index_of_foot, foot_input, index_of_foot_input, once, index_of_once, once_input, index_of_once_input
 
-def generate_output(list_objects,index_of_function,  group, index_of_group, body, indexes_of_body, input_file,fname, index_of_excel_function, excel_function, body_input, index_of_body_input, head, index_of_head, head_input, index_of_head_input, foot, index_of_foot, foot_input, index_of_foot_input, request):
+def generate_output(list_objects,index_of_function,  group, index_of_group, body, indexes_of_body, input_file,fname, index_of_excel_function, excel_function, body_input, index_of_body_input, head, index_of_head, head_input, index_of_head_input, foot, index_of_foot, foot_input, index_of_foot_input, request, once, index_of_once, once_input, index_of_once_input):
     message = 'ok' #message to be returned to signal the success of the function
     response = HttpResponse(mimetype='application/ms-excel')
 
@@ -98,7 +103,7 @@ def generate_output(list_objects,index_of_function,  group, index_of_group, body
     dict = {}
 
     #manipulate the data
-    message = manipulate_data(list_objects,index_of_function,  group, index_of_group, body, indexes_of_body, input_file,fname, index_of_excel_function, excel_function, dict, head, index_of_head, head_input, index_of_head_input, foot, index_of_foot, foot_input, index_of_foot_input, request)
+    message = manipulate_data(list_objects,index_of_function,  group, index_of_group, body, indexes_of_body, input_file,fname, index_of_excel_function, excel_function, dict, head, index_of_head, head_input, index_of_head_input, foot, index_of_foot, foot_input, index_of_foot_input, request, once, index_of_once, once_input, index_of_once_input)
 
     #if something's wrong, the return the message to raise exception
     if message != 'ok':
@@ -265,10 +270,13 @@ def generate_output(list_objects,index_of_function,  group, index_of_group, body
                 write_to_sheet(row_index,col_index,sheet, wtsheet, style_list, row, sheet.cell(row_index,col_index).value)
 
         #insert foot values to the output file:
-        #replace value head_values into head input
+        #replace value foot_values into foot input
         for f in range(len(index_of_foot)):
             value = foot_values[f]
-            foot_input[index_of_foot_input.index(index_of_foot[f])] = foot_input[index_of_foot_input.index(index_of_foot[f])].replace('{{foot:' + foot[f] + '}}', unicode(value))
+            try:
+                foot_input[index_of_foot_input.index(index_of_foot[f])] = foot_input[index_of_foot_input.index(index_of_foot[f])].replace('{{foot:' + foot[f] + '}}', unicode(value))
+            except :
+                foot_input[index_of_foot_input.index(index_of_foot[f])] = foot_input[index_of_foot_input.index(index_of_foot[f])].replace('{{foot:' + foot[f] + '}}', str(value).decode('utf-8'))
 
         #write foot values to output file:
         for f in range(len(index_of_foot_input)):
@@ -284,6 +292,12 @@ def generate_output(list_objects,index_of_function,  group, index_of_group, body
 
         row += 2 #each group are separated by one row, for beauty
 
+    #write once_input to output file
+    for i in range(len(once_input)):
+        row_index = index_of_once_input[i][0]
+        col_index = index_of_once_input[i][1]
+        write_to_sheet(row_index,col_index, sheet, wtsheet, style_list, row_index, once_input[i])
+
     #save output
 #    wtbook.save('%s/%s' % (FILE_GENERATE_PATH, fname))
 
@@ -292,8 +306,24 @@ def generate_output(list_objects,index_of_function,  group, index_of_group, body
     return message, response
 
 # This function is used for manipulating the data:
-def manipulate_data(list_objects,index_of_function,  group, index_of_group, body, indexes_of_body, input_file,fname, index_of_excel_function, excel_function, dict, head, index_of_head, head_input, index_of_head_input, foot, index_of_foot, foot_input, index_of_foot_input, request):
+def manipulate_data(list_objects,index_of_function,  group, index_of_group, body, indexes_of_body, input_file,fname, index_of_excel_function, excel_function, dict, head, index_of_head, head_input, index_of_head_input, foot, index_of_foot, foot_input, index_of_foot_input, request, once, index_of_once, once_input, index_of_once_input):
     message = 'ok'
+
+    #compute values for once:
+    a = list_objects[0]
+    for o in range(len(once)):
+        try:
+            value = eval('a["%s"]' %once[o])
+        except :
+            try:
+                value = eval('a.%s'%once[o])
+            except :
+                value = ''
+
+        try:
+            once_input[index_of_once_input.index(index_of_once[o])] = once_input[index_of_once_input.index(index_of_once[o])].replace('{{once:' + once[o] + '}}', unicode(value))
+        except :
+            once_input[index_of_once_input.index(index_of_once[o])] = once_input[index_of_once_input.index(index_of_once[o])].replace('{{once:' + once[o] + '}}', str(value).decode('utf-8'))
 
     # compute values of the data fields and put them into the dict
     for i in list_objects:
@@ -318,7 +348,7 @@ def manipulate_data(list_objects,index_of_function,  group, index_of_group, body
             except: # if error, raise exception and return the message
                 try:
                     body_value = eval('i.%s'%y)
-                    if body_value:
+                    if body_value != None:
                         result.append(body_value)
                     else:
                         result.append('')
@@ -343,7 +373,7 @@ def manipulate_data(list_objects,index_of_function,  group, index_of_group, body
                 except :
                     try: #for django models
                         head_value = eval('i.%s'%h)
-                        if head_value:
+                        if head_value != None:
                             head_result.append(head_value) #if head result is not None
                         else:
                             head_result.append('')
