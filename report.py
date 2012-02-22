@@ -109,7 +109,7 @@ def generate_output(list_objects,index_of_function,  group, index_of_group, body
     if message != 'ok':
         return message, response
     
-    keys =  sorted(dict.keys()) #sort the keys
+    keys =  dict.keys() #sort the keys
 
     sheet = input_file.sheet_by_index(0) # Get the first sheet
     style_list = copy2(input_file) #copy the content and the format(style) of the input file into wtbook
@@ -159,7 +159,7 @@ def generate_output(list_objects,index_of_function,  group, index_of_group, body
             #copy the value and the formats of that cell to the current row and the same index
             #this is the part of the grouping data. The group is repeated at each key
             write_to_sheet(row_index, col_index, sheet, wtsheet, style_list, row, '')
-
+        
         #copy the information in rows between the row of the group and the row of the body
         for row_index in range(start_row, indexes_of_body[0][0], 1):
             row  += 1 # increase the current row by one
@@ -290,7 +290,7 @@ def generate_output(list_objects,index_of_function,  group, index_of_group, body
         #restore foot_input
         foot_input = backup_foot_input[:]
 
-        row += 2 #each group are separated by one row, for beauty
+        row += 1
 
     #write once_input to output file
     for i in range(len(once_input)):
