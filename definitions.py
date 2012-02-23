@@ -26,3 +26,10 @@ def student_list(request, class_name):
 
 def get_class_list(request):
     return Class.objects.filter(year_id__id = int(request.session.get('year_id')),year_id__school_id__id = int(request.session.get('school_id'))).order_by('name')
+
+def get_subject_list_by_class(request):
+    return Subject.objects.filter(name=request.session.get('subject_name'),class_id__year_id__id = int(request.session.get('year_id'))).order_by('class_id')
+
+def get_subject_list_by_teacher(request):
+    return Subject.objects.filter(name=request.session.get('subject_name'),class_id__year_id=int(request.session.get('year_id')),teacher_id__isnull=False).order_by('teacher_id__first_name','teacher_id__last_name')
+

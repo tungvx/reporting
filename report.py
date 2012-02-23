@@ -127,6 +127,11 @@ def generate_output(list_objects,index_of_function,  group, index_of_group, body
         for col_index in range(sheet.ncols):
             write_to_sheet(row_index,col_index, sheet, wtsheet, style_list, row_index, sheet.cell(row_index, col_index).value)
 
+    if len(index_of_group) != 0:
+        col_index = index_of_group[0][1] #get index of column of the group
+        row_index = index_of_group[0][0] #get index of column of the group
+        write_to_sheet(row_index, col_index, sheet, wtsheet, style_list, row_index, '')
+
     #remove the content at the position of the function which returns the data, remains the format of the cell
     write_to_sheet(index_of_function[0][0],index_of_function[0][1],sheet, wtsheet, style_list, index_of_function[0][0], '')
 
@@ -310,20 +315,25 @@ def manipulate_data(list_objects,index_of_function,  group, index_of_group, body
     message = 'ok'
 
     #compute values for once:
-    a = list_objects[0]
-    for o in range(len(once)):
-        try:
-            value = eval('a["%s"]' %once[o])
-        except :
+    if len(list_objects) > 0:   
+        a = list_objects[0]
+        for o in range(len(once)):
             try:
-                value = eval('a.%s'%once[o])
+                value = eval('a["%s"]' %once[o])
             except :
-                value = ''
+                try:
+                    value = eval('a.%s'%once[o])
+                except :
+                    value = ''
 
-        try:
+            try:
+                once_input[index_of_once_input.index(index_of_once[o])] = once_input[index_of_once_input.index(index_of_once[o])].replace('{{once:' + once[o] + '}}', unicode(value))
+            except :
+                once_input[index_of_once_input.index(index_of_once[o])] = once_input[index_of_once_input.index(index_of_once[o])].replace('{{once:' + once[o] + '}}', str(value).decode('utf-8'))
+    else:
+        for o in range(len(once)):
+            value = ''
             once_input[index_of_once_input.index(index_of_once[o])] = once_input[index_of_once_input.index(index_of_once[o])].replace('{{once:' + once[o] + '}}', unicode(value))
-        except :
-            once_input[index_of_once_input.index(index_of_once[o])] = once_input[index_of_once_input.index(index_of_once[o])].replace('{{once:' + once[o] + '}}', str(value).decode('utf-8'))
 
     # compute values of the data fields and put them into the dict
     for i in list_objects:
@@ -360,7 +370,7 @@ def manipulate_data(list_objects,index_of_function,  group, index_of_group, body
                     message = message + y + '; or the function you defined returns wrong result (must return a list of objects)'
                     return message
         result = tuple(result)# convert to tupple: [] to ()
-
+        
         if dict.get(key): # if the key allready exists, trivially append the result to this key
             dict[key].append(result)
         else: #else create a  new key, and append the result

@@ -85,7 +85,7 @@ def get_list_of_object(function_name, index_of_function, request):
             print 'error'
     #if the list is not empty, then return the list
     try:
-        if len(list_objects) > 0:
+        if len(list_objects) >= 0:
             return 'ok', list_objects
     except :
         print 'error'
