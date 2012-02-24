@@ -21,28 +21,45 @@ FILE_GENERATE_PATH = SITE_ROOT + '/generated' #path to generated folder
 def generate(filename, request):
     fname = filename #name of the input file
     response = HttpResponse(mimetype='application/ms-excel')
-    try:
-        #extract the specified information
-        function_name, index_of_function, group, index_of_group, body, indexes_of_body, input_file,index_of_excel_function, excel_function, body_input, index_of_body_input, head, index_of_head, head_input, index_of_head_input, foot, index_of_foot, foot_input, index_of_foot_input, once, index_of_once, once_input, index_of_once_input = fileExtractor(fname)
-    except:
-        return 'Wrong input file, please check all data', response #if cannot extract the data, return wrong message
-    else:
-        message, list_objects = get_list_of_object(function_name,index_of_function, request)
+    response['Content-Disposition'] = u'attachment; filename=%s' % fname
 
-        if message != 'ok':
-            return message, response
-        #generate the report to the excel file, message here is the signal of the success
-        message, response = generate_output(list_objects, index_of_function, group, index_of_group, body,
-                                  indexes_of_body, input_file,fname, index_of_excel_function, excel_function,
-                                  body_input, index_of_body_input,
-                                  head, index_of_head, head_input, index_of_head_input,
-                                  foot, index_of_foot, foot_input, index_of_foot_input, request,
-                                  once, index_of_once, once_input, index_of_once_input)
-        return message, response
+    #read input file, style list:
+    input_book = xlrd.open_workbook('%s/%s' % (FILE_UPLOAD_PATH, filename), formatting_info=True)     #Read excel file for get data
+    style_list = copy2(input_book) #copy the content and the format(style) of the input file into wtbook
+    #create output file:
+    wtbook = xlwt.Workbook(encoding='utf-8') #create new workbook
+
+    for i in range(input_book.nsheets):
+        sheet = input_book.sheet_by_index(i) # Get the first sheet
+
+        try:
+            #extract the specified information
+            function_name, index_of_function, group, index_of_group, body, indexes_of_body, index_of_excel_function, excel_function, body_input, index_of_body_input, head, index_of_head, head_input, index_of_head_input, foot, index_of_foot, foot_input, index_of_foot_input, once, index_of_once, once_input, index_of_once_input = fileExtractor(sheet)
+        except:
+            return 'Wrong input file, please check all data', response #if cannot extract the data, return wrong message
+        else:
+            message, list_objects = get_list_of_object(function_name,index_of_function, request)
+
+            if message != 'ok':
+                return message, response
+            #generate the report to the excel file, message here is the signal of the success
+            message = generate_output(list_objects, index_of_function, group, index_of_group, body,
+                                      indexes_of_body, fname, index_of_excel_function, excel_function,
+                                      body_input, index_of_body_input,
+                                      head, index_of_head, head_input, index_of_head_input,
+                                      foot, index_of_foot, foot_input, index_of_foot_input, request,
+                                      once, index_of_once, once_input, index_of_once_input,
+                                      sheet, style_list, wtbook)
+
+
+            if message != 'ok':
+                return message, response
+
+    wtbook.save(response)
     return 'ok', response
 
 #function to extract specifications from the template file
-def fileExtractor(file):
+def fileExtractor(sheet):
     function_name = ''#name of the function which returns the list of objects
     group = '' #group
     index_of_group = [] #index of group
@@ -66,8 +83,6 @@ def fileExtractor(file):
     once_input = []
     index_of_once_input = []
     
-    fd = xlrd.open_workbook('%s/%s' % (FILE_UPLOAD_PATH, file), formatting_info=True)     #Read excel file for get data
-    sheet = fd.sheet_by_index(0) # Get the first sheet
     #read information user specified
     for col_x in range(sheet.ncols):
         for row_x in range(sheet.nrows):
@@ -80,11 +95,10 @@ def fileExtractor(file):
                 #append the function_name and the group
                 function_name += temp_function_name
                 group += temp_group
-    return function_name, index_of_function, group, index_of_group, body, indexes_of_body,fd, index_of_excel_function, excel_function, body_input, indexes_of_body_input, head, index_of_head, head_input, index_of_head_input, foot, index_of_foot, foot_input, index_of_foot_input, once, index_of_once, once_input, index_of_once_input
+    return function_name, index_of_function, group, index_of_group, body, indexes_of_body, index_of_excel_function, excel_function, body_input, indexes_of_body_input, head, index_of_head, head_input, index_of_head_input, foot, index_of_foot, foot_input, index_of_foot_input, once, index_of_once, once_input, index_of_once_input
 
-def generate_output(list_objects,index_of_function,  group, index_of_group, body, indexes_of_body, input_file,fname, index_of_excel_function, excel_function, body_input, index_of_body_input, head, index_of_head, head_input, index_of_head_input, foot, index_of_foot, foot_input, index_of_foot_input, request, once, index_of_once, once_input, index_of_once_input):
+def generate_output(list_objects,index_of_function,  group, index_of_group, body, indexes_of_body,fname, index_of_excel_function, excel_function, body_input, index_of_body_input, head, index_of_head, head_input, index_of_head_input, foot, index_of_foot, foot_input, index_of_foot_input, request, once, index_of_once, once_input, index_of_once_input, sheet, style_list, wtbook):
     message = 'ok' #message to be returned to signal the success of the function
-    response = HttpResponse(mimetype='application/ms-excel')
 
     #back up excel_function
     backup_excel_function = excel_function[:]
@@ -103,17 +117,14 @@ def generate_output(list_objects,index_of_function,  group, index_of_group, body
     dict = {}
 
     #manipulate the data
-    message = manipulate_data(list_objects,index_of_function,  group, index_of_group, body, indexes_of_body, input_file,fname, index_of_excel_function, excel_function, dict, head, index_of_head, head_input, index_of_head_input, foot, index_of_foot, foot_input, index_of_foot_input, request, once, index_of_once, once_input, index_of_once_input)
+    message = manipulate_data(list_objects, group, index_of_group, body, indexes_of_body, dict, head, index_of_head, foot, index_of_foot, once, index_of_once, once_input, index_of_once_input, request)
 
     #if something's wrong, the return the message to raise exception
     if message != 'ok':
         return message, response
     
     keys =  dict.keys() #sort the keys
-
-    sheet = input_file.sheet_by_index(0) # Get the first sheet
-    style_list = copy2(input_file) #copy the content and the format(style) of the input file into wtbook
-    wtbook = xlwt.Workbook(encoding='utf-8') #create new workbook
+    
     wtsheet = wtbook.add_sheet(sheet.name, cell_overwrite_ok=True)# create new sheet named as of sheet
 
     #copy column widths to output file
@@ -128,9 +139,7 @@ def generate_output(list_objects,index_of_function,  group, index_of_group, body
                 wtsheet.row(row_index).height = sheet.rowinfo_map.get(row_index).height #copy the height
             for col_index in range(sheet.ncols):
                 write_to_sheet(row_index, col_index, sheet, wtsheet, style_list, row_index, sheet.cell(row_index, col_index).value)
-        response['Content-Disposition'] = u'attachment; filename=%s' % fname
-        wtbook.save(response)
-        return message, response
+        return message
 
     #copy information between beginning of input file and row of body part:
     for row_index in range(indexes_of_body[0][0]):
@@ -315,15 +324,10 @@ def generate_output(list_objects,index_of_function,  group, index_of_group, body
         col_index = index_of_once_input[i][1]
         write_to_sheet(row_index,col_index, sheet, wtsheet, style_list, row_index, once_input[i])
 
-    #save output
-#    wtbook.save('%s/%s' % (FILE_GENERATE_PATH, fname))
-
-    response['Content-Disposition'] = u'attachment; filename=%s' % fname
-    wtbook.save(response)
-    return message, response
+    return message
 
 # This function is used for manipulating the data:
-def manipulate_data(list_objects,index_of_function,  group, index_of_group, body, indexes_of_body, input_file,fname, index_of_excel_function, excel_function, dict, head, index_of_head, head_input, index_of_head_input, foot, index_of_foot, foot_input, index_of_foot_input, request, once, index_of_once, once_input, index_of_once_input):
+def manipulate_data(list_objects, group, index_of_group, body, indexes_of_body, dict, head, index_of_head, foot, index_of_foot, once, index_of_once, once_input, index_of_once_input, request):
     message = 'ok'
 
     #compute values for once:
