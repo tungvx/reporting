@@ -33,3 +33,41 @@ def get_subject_list_by_class(request):
 def get_subject_list_by_teacher(request):
     return Subject.objects.filter(name=request.session.get('subject_name'),class_id__year_id=int(request.session.get('year_id')),teacher_id__isnull=False).order_by('teacher_id__first_name','teacher_id__last_name')
 
+def get_dh(request):
+    termNumber = int(request.session.get('term_number'))
+    year_id = int(request.session.get('year_id'))
+    type = int(request.session.get('type'))
+    school_id = int(request.session.get('school_id'))
+    if int(termNumber) < 3:
+        if   type == 1:
+            danhHieus = TBHocKy.objects.filter(student_id__classes__block_id__school_id__id = school_id, student_id__classes__year_id__id=year_id, term_id__number=termNumber,
+                                               danh_hieu_hk='G').order_by("student_id__index")
+        elif type == 2:
+            danhHieus = TBHocKy.objects.filter(student_id__classes__block_id__school_id__id = school_id, student_id__classes__year_id__id=year_id, term_id__number=termNumber,
+                                               danh_hieu_hk='TT').order_by("student_id__index")
+        elif type == 3:
+            danhHieus = TBHocKy.objects.filter(student_id__classes__block_id__school_id__id = school_id, student_id__classes__year_id__id=year_id, term_id__number=termNumber,
+                                               danh_hieu_hk__in=['G', 'TT']).order_by("danh_hieu_hk",
+                                                                                      "student_id__index")
+    else:
+        if   type == 1:
+            danhHieus = TBNam.objects.filter(student_id__classes__block_id__school_id__id = school_id, student_id__classes__year_id__id=year_id, danh_hieu_nam='G').order_by("student_id__index")
+        elif type == 2:
+            danhHieus = TBNam.objects.filter(student_id__classes__block_id__school_id__id = school_id, student_id__classes__year_id__id=year_id, danh_hieu_nam='TT').order_by("student_id__index")
+        elif type == 3:
+            danhHieus=TBNam.objects.filter(student_id__classes__block_id__school_id__id = school_id, student_id__classes__year_id__id=year_id,danh_hieu_nam__in=['G','TT']).order_by("danh_hieu_nam","student_id__index")
+
+    return danhHieus
+
+def get_pupils_no_pass(request):
+    type = int(request.session.get('type'))
+    school_id = int(request.session.get('school_id'))
+    year_id = int(request.session.get('year_id'))
+    if   type == 1:
+        pupils = TBNam.objects.filter(student_id__classes__block_id__school_id = school_id, student_id__classes__year_id__id=year_id, len_lop=False).order_by("student_id__index")
+    elif type == 2:
+        pupils = TBNam.objects.filter(student_id__classes__block_id__school_id = school_id, student_id__classes__year_id__id=year_id, thi_lai=True).order_by("student_id__index")
+    elif type == 3:
+        pupils = TBNam.objects.filter(student_id__classes__block_id__school_id = school_id, student_id__classes__year_id__id=year_id, ren_luyen_lai=True).order_by("student_id__index")
+
+    return pupils
