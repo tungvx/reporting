@@ -75,6 +75,8 @@ def extract_information(index_of_function, index_of_group, body, indexes_of_body
 
 #function to get a list of objects containing the data
 def get_list_of_object(function_name, index_of_function, request):
+    if function_name == '':
+        return 'ok', []
     #try to get list of objects from definitions.py file, or execute the fuction directly
     try:
         list_objects = eval('definitions.%s' %function_name)

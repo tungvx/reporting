@@ -120,6 +120,18 @@ def generate_output(list_objects,index_of_function,  group, index_of_group, body
     for i in range(sheet.ncols):
         wtsheet.col(i).width = sheet.computed_column_width(i)
 
+    #if function data is not specified:
+    if len(index_of_function) == 0:
+        #just copy the content of input file to ouput file:
+        for row_index in range(sheet.nrows):
+            if (sheet.rowinfo_map.get(row_index)):
+                wtsheet.row(row_index).height = sheet.rowinfo_map.get(row_index).height #copy the height
+            for col_index in range(sheet.ncols):
+                write_to_sheet(row_index, col_index, sheet, wtsheet, style_list, row_index, sheet.cell(row_index, col_index).value)
+        response['Content-Disposition'] = u'attachment; filename=%s' % fname
+        wtbook.save(response)
+        return message, response
+
     #copy information between beginning of input file and row of body part:
     for row_index in range(indexes_of_body[0][0]):
         if (sheet.rowinfo_map.get(row_index)):
