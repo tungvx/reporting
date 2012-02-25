@@ -121,7 +121,7 @@ def generate_output(list_objects,index_of_function,  group, index_of_group, body
 
     #if something's wrong, the return the message to raise exception
     if message != 'ok':
-        return message, response
+        return message
     
     keys =  dict.keys() #sort the keys
     
@@ -272,7 +272,7 @@ def generate_output(list_objects,index_of_function,  group, index_of_group, body
                         message =  'Error in excel formula definition (at cell (' + str(index_of_excel_function[h][0] + 1) + ', '
                         message = message + str(index_of_excel_function[h][1] + 1)
                         message = message + ')): Syntax error '
-                        return message, response
+                        return message
 
             #copy format of other cell in the body row
             row_index = index_of_body_input[0][0]
