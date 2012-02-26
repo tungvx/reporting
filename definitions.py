@@ -21,11 +21,17 @@ def mark_for_class(request):
 #    return Mark.objects.filter(student_id__class_id__name = '6 A1')
     return Mark.objects.filter(subject_id__class_id__id = int(request.session.get('class_id')),term_id__number=int(request.session.get('termNumber')),current=True).order_by('student_id__index','student_id__first_name','student_id__last_name','student_id__birthday')
 
-def student_list(request, class_name):
-    return Pupil.objects.filter(class_id__name = class_name)
+def student_list(request):
+    return Pupil.objects.filter(class_id__id = int(request.session.get('class_id')))
+
+def get_class(request):
+    return Class.objects.filter(id = int(request.session.get('class_id')))
 
 def get_class_list(request):
-    return Class.objects.filter(year_id__id = int(request.session.get('year_id')),year_id__school_id__id = int(request.session.get('school_id'))).order_by('name')
+    class_list = Class.objects.filter(year_id__id = int(request.session.get('year_id'))).order_by('name')
+    request.session['class_list'] = class_list
+    request.session['additional_keys'].append('class_list')
+    return class_list
 
 def get_subject_list_by_class(request):
     return Subject.objects.filter(name=request.session.get('subject_name'),class_id__year_id__id = int(request.session.get('year_id'))).order_by('class_id')
