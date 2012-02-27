@@ -56,6 +56,8 @@ def generate(filename, request):
                 return message, response
 
     wtbook.save(response)
+    if request.session.get('is_spreadsheet'):
+        wtbook.save('%s/%s' % (FILE_GENERATE_PATH, fname))
     return 'ok', response
 
 #function to extract specifications from the template file

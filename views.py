@@ -163,7 +163,7 @@ def spreadsheet_report(request): #action to handle create report from google spr
                 return render_to_response(SPREADSHEET_REPORT, {'form':form, 'message':message}, context_instance = c)
             
             # from the key of the spreadsheet, generate the report
-            generator, output_link,title = generate_from_spreadsheet(spreadsheet_key, request.session.get('token'), username, password)
+            generator, output_link,title = generate_from_spreadsheet(spreadsheet_key, request.session.get('token'), username, password, request)
 
             #if the message is not ok
             if generator != 'ok':
