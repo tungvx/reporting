@@ -25,6 +25,9 @@ def mark_for_class(request):
 def student_list(request):
     return Pupil.objects.filter(class_id__id = int(request.session.get('class_id')))
 
+def student_list():
+    return Pupil.objects.all()
+
 def get_class(request):
     return Class.objects.filter(id = int(request.session.get('class_id')))
 
