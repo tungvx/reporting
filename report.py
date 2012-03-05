@@ -392,9 +392,9 @@ def write_groups_to_excel(list_objects,index_of_function,  group, index_of_group
                     if (row_index, col_index) not in reserve_postions:
                         write_to_sheet(row_index, col_index, sheet, wtsheet, style_list, row, '')
 
+        max_foot_row = row
         if index_of_foot.get(key_all):
             #write foot values to output file:
-            max_foot_row = row
             #insert foot values to the output file:
             #replace value foot_values into foot input
             temp_current_excel_function = excel_function[:]
