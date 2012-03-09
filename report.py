@@ -12,6 +12,7 @@ from itertools import groupby
 import os
 from extract_information import extract_information, get_list_of_object
 from django.http import HttpResponse, HttpResponseRedirect
+import datetime
 
 SITE_ROOT = os.path.dirname(os.path.realpath(__file__)) #path of the app
 FILE_UPLOAD_PATH = SITE_ROOT + '/uploaded' #path to uploaded folder
