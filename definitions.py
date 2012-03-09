@@ -15,6 +15,7 @@ def get_admin_log():
 
 try:
     from school.models import *
+    from app.models import *
 except :
     print ''
 
@@ -81,3 +82,12 @@ def get_pupils_no_pass(request):
         pupils = TBNam.objects.filter(student_id__classes__block_id__school_id = school_id, student_id__classes__year_id__id=year_id, ren_luyen_lai=True).order_by("student_id__index")
 
     return pupils
+
+#bao cao cap so:
+def get_year(request):
+    school = Organization.objects.get(id = '2')
+    year = school.year_set.latest('time')
+    request.session["term_number"] = 3
+    request.session["year_id"] = year.id
+    request.session["additional_keys"] = []
+    return [year]

@@ -42,6 +42,7 @@ def generate(filename, request):
 
             if message != 'ok':
                 return message, response
+
             #generate the report to the excel file, message here is the signal of the success
             message = generate_output(list_objects, index_of_function, group, index_of_group, body,
                                       indexes_of_body, fname, index_of_excel_function, excel_function,
