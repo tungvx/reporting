@@ -91,3 +91,11 @@ def get_year(request):
     request.session["year_id"] = year.id
     request.session["additional_keys"] = []
     return [year]
+
+def get_block_list(request):
+    school = Organization.objects.get(id = '2')
+    year = school.year_set.latest('time')
+    request.session["term_number"] = 1
+    request.session["year_id"] = year.id
+    request.session["additional_keys"] = []
+    return Block.objects.filter(school_id=school.id)
