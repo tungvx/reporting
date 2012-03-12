@@ -199,6 +199,7 @@ def generate_output(list_objects,index_of_function,  group, index_of_group, body
                     message = message + ')): Syntax error '
                     return message
 
+    wtsheet.vert_page_breaks = sheet.vertical_page_breaks
 
     return message
 def write_groups_to_excel(list_objects,index_of_function,  group, index_of_group, body, indexes_of_body,fname, index_of_excel_function, excel_function, body_input, index_of_body_input, head, index_of_head, head_input, index_of_head_input, foot, index_of_foot, foot_input, index_of_foot_input, request, once, index_of_once, once_input, index_of_once_input, sheet, style_list,wtsheet, dict_values, row, key_index, reserve_postions):    
