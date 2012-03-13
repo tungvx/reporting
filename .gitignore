@@ -8,3 +8,5 @@ lib
 *.xls
 .idea/
 *.xls#
+*.doc#
+*.docx#

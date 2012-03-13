@@ -35,7 +35,7 @@ def generate(filename, request):
 
         try:
             #extract the specified information
-            function_name, index_of_function, group, index_of_group, body, indexes_of_body, index_of_excel_function, excel_function, body_input, index_of_body_input, head, index_of_head, head_input, index_of_head_input, foot, index_of_foot, foot_input, index_of_foot_input, once, index_of_once, once_input, index_of_once_input, reserve_postions = fileExtractor(sheet)
+            function_name, index_of_function, group, index_of_group, body, indexes_of_body, index_of_excel_function, excel_function, body_input, index_of_body_input, head, index_of_head, head_input, index_of_head_input, foot, index_of_foot, foot_input, index_of_foot_input, once, index_of_once, once_input, index_of_once_input, reserve_postions, index_of_end_group = fileExtractor(sheet)
         except:
             return 'Wrong input file, please check all data', response #if cannot extract the data, return wrong message
         else:
@@ -51,7 +51,7 @@ def generate(filename, request):
                                       head, index_of_head, head_input, index_of_head_input,
                                       foot, index_of_foot, foot_input, index_of_foot_input, request,
                                       once, index_of_once, once_input, index_of_once_input,
-                                      sheet, style_list, wtbook, reserve_postions)
+                                      sheet, style_list, wtbook, reserve_postions, index_of_end_group)
 
 
             if message != 'ok':
@@ -66,6 +66,7 @@ def fileExtractor(sheet):
     function_name = ''#name of the function which returns the list of objects
     group = {} #group
     index_of_group = {} #index of group
+    index_of_end_group = {}
     index_of_function = [] #index of the function specification
     body = [] # contains the list of all the body data
     indexes_of_body = [] #indexes of the body data
@@ -94,13 +95,13 @@ def fileExtractor(sheet):
             if value: #if the cell contains data
 
                 #call the function to extract information
-                temp_function_name = extract_information(index_of_function, index_of_group, body, indexes_of_body,index_of_excel_function, excel_function, value, row_x, col_x,[],[], body_input, indexes_of_body_input, head, index_of_head, head_input, index_of_head_input, foot, index_of_foot, foot_input, index_of_foot_input, once, index_of_once, once_input, index_of_once_input, group, reserve_postions)
+                temp_function_name = extract_information(index_of_function, index_of_group, body, indexes_of_body,index_of_excel_function, excel_function, value, row_x, col_x,[],[], body_input, indexes_of_body_input, head, index_of_head, head_input, index_of_head_input, foot, index_of_foot, foot_input, index_of_foot_input, once, index_of_once, once_input, index_of_once_input, group, reserve_postions, index_of_end_group)
 
                 #append the function_name and the group
                 function_name += temp_function_name
-    return function_name, index_of_function, group, index_of_group, body, indexes_of_body, index_of_excel_function, excel_function, body_input, indexes_of_body_input, head, index_of_head, head_input, index_of_head_input, foot, index_of_foot, foot_input, index_of_foot_input, once, index_of_once, once_input, index_of_once_input, reserve_postions
+    return function_name, index_of_function, group, index_of_group, body, indexes_of_body, index_of_excel_function, excel_function, body_input, indexes_of_body_input, head, index_of_head, head_input, index_of_head_input, foot, index_of_foot, foot_input, index_of_foot_input, once, index_of_once, once_input, index_of_once_input, reserve_postions, index_of_end_group
 
-def generate_output(list_objects,index_of_function,  group, index_of_group, body, indexes_of_body,fname, index_of_excel_function, excel_function, body_input, index_of_body_input, head, index_of_head, head_input, index_of_head_input, foot, index_of_foot, foot_input, index_of_foot_input, request, once, index_of_once, once_input, index_of_once_input, sheet, style_list, wtbook, reserve_postions):
+def generate_output(list_objects,index_of_function,  group, index_of_group, body, indexes_of_body,fname, index_of_excel_function, excel_function, body_input, index_of_body_input, head, index_of_head, head_input, index_of_head_input, foot, index_of_foot, foot_input, index_of_foot_input, request, once, index_of_once, once_input, index_of_once_input, sheet, style_list, wtbook, reserve_postions, , index_of_end_group):
     #dict to store the values of the data fields. Dict here is used for grouping the data
     #the value of the group will be the keys of the dict
     dict = {}

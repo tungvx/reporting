@@ -22,7 +22,7 @@ def extract_information(index_of_function, index_of_group, body, indexes_of_body
                         index_of_excel_function, excel_function, value, row_x, col_x, other_info, index_of_other_info,
                         body_input, indexes_of_body_input, head, index_of_head, head_input, index_of_head_input,
                         foot, index_of_foot, foot_input, index_of_foot_input,
-                        once, index_of_once, once_input, index_of_once_input, group, reserve_postions):
+                        once, index_of_once, once_input, index_of_once_input, group, reserve_postions, index_of_end_group):
     function_name = ''
     value = unicode(value)
     temp = re.search('#<.*?>', value) #if the cell contains the function which returns the data
@@ -36,12 +36,7 @@ def extract_information(index_of_function, index_of_group, body, indexes_of_body
         if temp: #if yes
             for temp1 in temp: #iterating all of the fields
                 temp1 = temp1.rstrip('}}').lstrip('{{') # remove tags to get attributes
-                if (temp1.startswith('group')): #if the field is the group
-                    temp_group = temp1[5:] #remove group:
-                    group_key = temp_group[:temp_group.index(':')]
-                    group[group_key] = temp_group[temp_group.index(':') + 1:]
-                    index_of_group[group_key] = (row_x, col_x) #stores the location of the group
-                elif (temp1.startswith('head')): #if the field is the group:
+                if (temp1.startswith('head')): #if the field is the group:
                     temp_head = temp1[4:] #else the field is the head
                     head_key = temp_head[:temp_head.index(':')]
                     if not head.get(head_key):
@@ -86,8 +81,22 @@ def extract_information(index_of_function, index_of_group, body, indexes_of_body
             if (row_x, col_x) not in reserve_postions:
                 reserve_postions.append((row_x, col_x))
         else:
-            other_info.append(value) #store other information
-            index_of_other_info.append((row_x,col_x))#store the index of other information
+            temp = re.findall('<.*?>', unicode(value)) # find all group tag
+            if temp:
+                for temp1 in temp: #iterating all of the fields
+                    temp1 = temp1.rstrip('>').lstrip('<') # remove tags to get attributes
+                    if (temp1.startswith('group')): #if the field is the group
+                        temp_group = temp1[5:] #remove group:
+                        group_key = temp_group[:temp_group.index(':')]
+                        group[group_key] = temp_group[temp_group.index(':') + 1:]
+                        index_of_group[group_key] = (row_x, col_x) #stores the location of the group
+                    elif (temp1.startswith('/group')):
+                        temp_group = temp1[6:] #remove /group:
+                        group_key = temp_group[:temp_group.index(':')]
+                        index_of_end_group[group_key] = (row_x, col_x) #stores the locations of end group
+            else:
+                other_info.append(value) #store other information
+                index_of_other_info.append((row_x,col_x))#store the index of other information
 
     return function_name
 
