@@ -92,8 +92,10 @@ def extract_information(index_of_function, index_of_group, body, indexes_of_body
                         index_of_group[group_key] = (row_x, col_x) #stores the location of the group
                     elif (temp1.startswith('/group')):
                         temp_group = temp1[6:] #remove /group:
-                        group_key = temp_group[:temp_group.index(':')]
+                        group_key = temp_group
                         index_of_end_group[group_key] = (row_x, col_x) #stores the locations of end group
+                if (row_x, col_x) not in reserve_postions:
+                    reserve_postions.append((row_x, col_x))
             else:
                 other_info.append(value) #store other information
                 index_of_other_info.append((row_x,col_x))#store the index of other information

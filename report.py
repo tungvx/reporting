@@ -101,7 +101,9 @@ def fileExtractor(sheet):
                 function_name += temp_function_name
     return function_name, index_of_function, group, index_of_group, body, indexes_of_body, index_of_excel_function, excel_function, body_input, indexes_of_body_input, head, index_of_head, head_input, index_of_head_input, foot, index_of_foot, foot_input, index_of_foot_input, once, index_of_once, once_input, index_of_once_input, reserve_postions, index_of_end_group
 
-def generate_output(list_objects,index_of_function,  group, index_of_group, body, indexes_of_body,fname, index_of_excel_function, excel_function, body_input, index_of_body_input, head, index_of_head, head_input, index_of_head_input, foot, index_of_foot, foot_input, index_of_foot_input, request, once, index_of_once, once_input, index_of_once_input, sheet, style_list, wtbook, reserve_postions, , index_of_end_group):
+def generate_output(list_objects,index_of_function,  group, index_of_group, body, indexes_of_body,fname, index_of_excel_function, excel_function, body_input, index_of_body_input, head, index_of_head, head_input, index_of_head_input, foot, index_of_foot, foot_input, index_of_foot_input, request, once, index_of_once, once_input, index_of_once_input, sheet, style_list, wtbook, reserve_postions, index_of_end_group):
+    message = 'ok'
+
     #dict to store the values of the data fields. Dict here is used for grouping the data
     #the value of the group will be the keys of the dict
     dict = {}
@@ -147,10 +149,10 @@ def generate_output(list_objects,index_of_function,  group, index_of_group, body
 
     #begin to write the data fields to wtbook
     if len(indexes_of_body) > 0:
-        row = indexes_of_body[0][0] #variable used to travel all the rows in the wtsheet
+        row = indexes_of_body[0][0]#variable used to travel all the rows in the wtsheet
 
         #call this function to recursively write the groups to ouput sheet
-        row, message = write_groups_to_excel(list_objects,index_of_function,  group, index_of_group, body, indexes_of_body,fname, index_of_excel_function, excel_function, body_input, index_of_body_input, head, index_of_head, head_input, index_of_head_input, foot, index_of_foot, foot_input, index_of_foot_input, request, once, index_of_once, once_input, index_of_once_input, sheet, style_list,wtsheet, dict , row, 0, reserve_postions)
+        row, message = write_groups_to_excel(list_objects,index_of_function,  group, index_of_group, body, indexes_of_body,fname, index_of_excel_function, excel_function, body_input, index_of_body_input, head, index_of_head, head_input, index_of_head_input, foot, index_of_foot, foot_input, index_of_foot_input, request, once, index_of_once, once_input, index_of_once_input, sheet, style_list,wtsheet, dict , row, 0, reserve_postions, index_of_end_group)
         if message != 'ok':
             return message
         max_row = indexes_of_body[0][0];
@@ -203,16 +205,16 @@ def generate_output(list_objects,index_of_function,  group, index_of_group, body
     wtsheet.vert_page_breaks = sheet.vertical_page_breaks
 
     return message
-def write_groups_to_excel(list_objects,index_of_function,  group, index_of_group, body, indexes_of_body,fname, index_of_excel_function, excel_function, body_input, index_of_body_input, head, index_of_head, head_input, index_of_head_input, foot, index_of_foot, foot_input, index_of_foot_input, request, once, index_of_once, once_input, index_of_once_input, sheet, style_list,wtsheet, dict_values, row, key_index, reserve_postions):    
+def write_groups_to_excel(list_objects,index_of_function,  group, index_of_group, body, indexes_of_body,fname, index_of_excel_function, excel_function, body_input, index_of_body_input, head, index_of_head, head_input, index_of_head_input, foot, index_of_foot, foot_input, index_of_foot_input, request, once, index_of_once, once_input, index_of_once_input, sheet, style_list,wtsheet, dict_values, row, key_index, reserve_postions, index_of_end_group):    
     message = 'ok' #message to be returned to signal the success of the function
 
     group_key, key_all = get_group_key_and_key_all(group, key_index)
 
     if group.get(key_all):#if the group exists
         col_index = index_of_group.get(key_all)[1] #get index of column of the group
-        row_index = index_of_group.get(key_all)[0] #get index of column of the group
+        row_index = index_of_group.get(key_all)[0] #get index of row of the group
         write_to_sheet(row_index, col_index, sheet, wtsheet, style_list, row_index, '')
-        row = row - (indexes_of_body[0][0] - row_index) #start write from row of group
+        row = row - (indexes_of_body[0][0] - row_index)#start write from row of group
         start_row = row_index + 1
     else:#else start write from row of body
         start_row = indexes_of_body[0][0]
@@ -252,14 +254,14 @@ def write_groups_to_excel(list_objects,index_of_function,  group, index_of_group
             write_to_sheet(row_index, col_index, sheet, wtsheet, style_list, row, '')
 
         #copy the information in rows between the row of the group and the row of the body
-        for row_index in range(start_row, indexes_of_body[0][0], 1):
+        for row_index in range(start_row, indexes_of_body[0][0] + 1, 1):
             row  += 1 # increase the current row by one
             if (sheet.rowinfo_map.get(row_index)):
                 wtsheet.row(row).height = sheet.rowinfo_map.get(row_index).height #copy the height
             for col_index in range(sheet.ncols): #iterate all the columns
                 if (row_index, col_index) not in reserve_postions:
                     write_to_sheet(row_index, col_index, sheet, wtsheet, style_list, row, sheet.cell(row_index, col_index).value)
-
+        
         #write data fields to wtsheet
         values = dict_values.get(key) #get the list of the data fields of this key
 
@@ -289,7 +291,7 @@ def write_groups_to_excel(list_objects,index_of_function,  group, index_of_group
             for h in range(len(index_of_head_input[key_all])):
                 col_index = index_of_head_input[key_all][h][1]
                 row_index = index_of_head_input[key_all][h][0]
-                write_to_sheet(row_index, col_index, sheet, wtsheet, style_list, row - (indexes_of_body[0][0] - row_index) + 1, temp_current_head_input[h])
+                write_to_sheet(row_index, col_index, sheet, wtsheet, style_list, row - (indexes_of_body[0][0] - row_index), temp_current_head_input[h])
 
             #write excel functions in the head part to the output file:
             for h in range(len(index_of_excel_function)):
@@ -305,11 +307,11 @@ def write_groups_to_excel(list_objects,index_of_function,  group, index_of_group
                     # try to execute the excel function as a python function, and write the result to the ouput sheet
                     try:
                         value_of_excel_function = eval(temp_excel_function)
-                        write_to_sheet(row_index, col_index, sheet, wtsheet, style_list, row - (indexes_of_body[0][0] - row_index) + 1
+                        write_to_sheet(row_index, col_index, sheet, wtsheet, style_list, row - (indexes_of_body[0][0] - row_index)
                                                                , value_of_excel_function)
                     except: #if can not execute as a python function, we will try to parse it as a excel formula
                         try:
-                            write_to_sheet(row_index, col_index, sheet, wtsheet, style_list, row - (indexes_of_body[0][0] - row_index) + 1
+                            write_to_sheet(row_index, col_index, sheet, wtsheet, style_list, row - (indexes_of_body[0][0] - row_index)
                                                                , xlwt.Formula(temp_excel_function))
                         except: #if all the two above cases are failed, the raise syntax error
                             message = 'Error in excel formula, python function definition (at cell (' + str(
@@ -320,11 +322,12 @@ def write_groups_to_excel(list_objects,index_of_function,  group, index_of_group
         
         #write body values to output file:
         if type(body_values) is dict:
-            row, message = write_groups_to_excel(list_objects,index_of_function,  group, index_of_group, body, indexes_of_body,fname, index_of_excel_function, excel_function, body_input, index_of_body_input, head, index_of_head, head_input, index_of_head_input, foot, index_of_foot, foot_input, index_of_foot_input, request, once, index_of_once, once_input, index_of_once_input, sheet, style_list,wtsheet, body_values, row + 1, key_index + 1, reserve_postions)
+            row, message = write_groups_to_excel(list_objects,index_of_function,  group, index_of_group, body, indexes_of_body,fname, index_of_excel_function, excel_function, body_input, index_of_body_input, head, index_of_head, head_input, index_of_head_input, foot, index_of_foot, foot_input, index_of_foot_input, request, once, index_of_once, once_input, index_of_once_input, sheet, style_list,wtsheet, body_values, row, key_index + 1, reserve_postions, index_of_end_group)
             if message != 'ok':
                 return row, message
         else:
             increase_row = 1
+            row -= 1
             for i in range(len(body_values)): #iterate the list to get all the data fields
                 temp_current_excel_function = excel_function[:]
                 temp_body_input = body_input[:]
@@ -397,6 +400,9 @@ def write_groups_to_excel(list_objects,index_of_function,  group, index_of_group
                         write_to_sheet(row_index, col_index, sheet, wtsheet, style_list, row, '')
 
         max_foot_row = row
+        index_of_this_end_group = index_of_end_group.get(key_all)
+        if (index_of_this_end_group):
+            max_foot_row = row + (index_of_this_end_group[0] - indexes_of_body[0][0])
         if index_of_foot.get(key_all):
             #write foot values to output file:
             #insert foot values to the output file:
@@ -426,19 +432,8 @@ def write_groups_to_excel(list_objects,index_of_function,  group, index_of_group
                 if row_of_foot > max_foot_row:
                     max_foot_row = row_of_foot
                 write_to_sheet(row_index, col_index, sheet, wtsheet, style_list, row_of_foot, temp_current_foot_input[f])
-            
-            #copy the information provided by user at the end of the report to the end of the output file
-            temp_row = row
-            for row_index in range(indexes_of_body[0][0] + 1,indexes_of_body[0][0] + max_foot_row - row + 1, 1):
-                temp_row += 1
-                if (sheet.rowinfo_map.get(row_index)):
-                    wtsheet.row(temp_row).height = sheet.rowinfo_map.get(row_index).height #copy the height
-                for col_index in range(sheet.ncols):
-                    #copy the value and the format
-                    if (row_index, col_index) not in reserve_postions:
-                        write_to_sheet(row_index,col_index,sheet, wtsheet, style_list, temp_row, sheet.cell(row_index,col_index).value)
 
-            #write excel functions in the head part to the output file:
+            #write excel functions in the foot part to the output file:
             for h in range(len(index_of_excel_function)):
                 if index_of_excel_function[h] in index_of_foot.get(key_all):
                     col_index = index_of_excel_function[h][1] # get column index of the cell contain excel function
@@ -466,9 +461,21 @@ def write_groups_to_excel(list_objects,index_of_function,  group, index_of_group
                             message = message + ')): Syntax error '
                             return message
 
+        #copy the information provided by user at the end of the report to the end of the output file
+        temp_row = row
+        for row_index in range(indexes_of_body[0][0] + 1,indexes_of_body[0][0] + max_foot_row - row + 1, 1):
+            temp_row += 1
+            if (sheet.rowinfo_map.get(row_index)):
+                wtsheet.row(temp_row).height = sheet.rowinfo_map.get(row_index).height #copy the height
+            for col_index in range(sheet.ncols):
+                #copy the value and the format
+                if (row_index, col_index) not in reserve_postions:
+                    write_to_sheet(row_index,col_index,sheet, wtsheet, style_list, temp_row, sheet.cell(row_index,col_index).value)
+                if (row_index, col_index) == index_of_this_end_group:
+                    write_to_sheet(row_index,col_index,sheet, wtsheet, style_list, temp_row, '')
+          
         if l < len(dict_values) - 1:
-            row = max_foot_row
-            row += 1
+            row = max_foot_row + 1
 
 
     # return 1, 'not ok'
